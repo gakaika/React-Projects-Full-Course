@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 import Card from "../UI/Card";
 import Button from "../UI/Button";
@@ -7,21 +7,17 @@ import ErrorModal from "../UI/ErrorModal";
 import classes from "./AddUser.module.css";
 
 const AddUser = (props) => {
-    const [username, setUsername] = useState("");
-    const [age, setAge] = useState("");
-    const [error, setError] = useState();
+    // using refs here for alternate to state managing the input field values
+    const usernameInputRef = useRef();
+    const ageInputRef = useRef();
     
-    const updateUsernameHandler = (event) => {
-        setUsername(event.target.value);
-    }
-    const updateAgeHandler = (event) => {
-        setAge(event.target.value);
-    }
+    const [error, setError] = useState();
 
     const addUserHandler = (event) => {
         event.preventDefault();
-        const enteredUsername = username.trim();
-        const enteredAge = parseInt(age);
+
+        const enteredUsername = usernameInputRef.current.value.trim();
+        const enteredAge = parseInt(ageInputRef.current.value);
 
         if (enteredUsername.length === 0){
             setError({
@@ -37,8 +33,11 @@ const AddUser = (props) => {
         }
         else {
             props.onAddUser(enteredUsername, enteredAge);
-            setUsername("");
-            setAge("");
+            
+            // using refs to reset value, allowable in this case as only trivially resetting input fields
+            // but only rarely use refs to manipulate dom
+            usernameInputRef.current.value = "";
+            ageInputRef.current.value = "";
         }
     }
     
@@ -47,18 +46,18 @@ const AddUser = (props) => {
     }
 
     return (
-        <div>
+        <>
             {error && <ErrorModal title={error.title} message={error.message} onClear={removeErrorHandler}/>}
             <Card className={classes.input}>
                 <form onSubmit={addUserHandler}>
                     <label htmlFor="username">Username</label>
-                    <input id="username" type="text" value={username} onChange={updateUsernameHandler}/>
+                    <input id="username" type="text" ref={usernameInputRef}/>
                     <label htmlFor="age">Age (years)</label>
-                    <input id="age" type="number" value={age} onChange={updateAgeHandler}/>
+                    <input id="age" type="number" ref={ageInputRef}/>
                     <Button type="submit">Add User</Button>
                 </form>
             </Card>
-        </div>
+        </>
     );
 }
 
